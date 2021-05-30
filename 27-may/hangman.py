@@ -64,7 +64,7 @@ def check_guess(word, letter, guesses, turns_left):
 def main():
     turns_left = 10
     guesses = []
-    word = get_word("/home/adaline/words.txt")
+    word = get_word("/usr/share/dict/words")
     while True:
         status = create_status(word, guesses, turns_left)
         print(status)
