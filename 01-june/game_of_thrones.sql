@@ -3,7 +3,7 @@ CREATE TABLE character (
        name text NOT NULL,
        gender varchar(1),
        nickname text,
-       aff_id integer references(affiliation.id) -- foreign key
+       aff_id integer references affiliation(id) -- foreign key
 );
 
 -- Insert data
