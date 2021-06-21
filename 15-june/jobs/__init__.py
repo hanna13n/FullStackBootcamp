@@ -1,5 +1,5 @@
 import random
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 # create_app is a function which will automatically called by the
 # flask command line program create an instance of the application.
@@ -65,6 +65,24 @@ def create_app():
         crawl_date = curs.fetchone()[0]
 
         return render_template('index.html', quote=quote, author=author, count=count, date=crawl_date)
+
+    @app.route("/search_results", methods=["POST"])
+    def search_job():
+        conn = db.get_db()
+        cursor = conn.cursor()
+        cursor.execute(
+            "select crawled_on from crawl_status order by crawled_on desc limit 1")
+        crawl_date = cursor.fetchone()[0]
+        cursor.execute("select count(*) from openings")
+        count = cursor.fetchone()[0]
+        string = request.form.get("searchstring")
+        string = '%'+string+'%'
+        cursor.execute(
+            "select o.id, o.title, o.company_name, s.name, o.jd_text from openings o,job_status s where s.id=o.status and o.title ilike %s ", (string, ))
+        jobs = cursor.fetchall()
+        if not jobs:
+            return render_template("jobs/search_results.html", date=crawl_date, count=count), 404
+        return render_template("jobs/search_results.html", jobs=jobs, count=count, date=crawl_date)
 
     from . import jobs
     app.register_blueprint(jobs.bp)
