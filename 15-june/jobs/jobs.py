@@ -115,8 +115,13 @@ def edit_job(jid):
     cursor.execute(
         "select o.title, o.company_name, s.name, o.jd_text, o.crawled_on from openings o, job_status s where o.id = %s and s.id = o.status", (jid,))
     job = cursor.fetchone()
+    cursor.execute("select count(*) from openings")
+    count = cursor.fetchone()[0]
+    cursor.execute(
+        '''select crawled_on from crawl_status order by crawled_on desc limit 1''')
+    crawl_date = cursor.fetchone()[0]
     if not job:
-        return render_template("jobs/jobdetails.html"), 404
+        return render_template("jobs/jobdetails.html", count=count, date=crawl_date), 404
 
     if request.method == "GET":
         title, company_name, status, jd, crawled_on = job
@@ -128,7 +133,9 @@ def edit_job(jid):
                                statuses=statuses,
                                status=status,
                                title=title,
-                               crawled_on=crawled_on)
+                               crawled_on=crawled_on,
+                               date=crawled_on,
+                               count=count)
     elif request.method == "POST":
         status = request.form.get("status")
         jd = request.form.get("jd")
