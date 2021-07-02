@@ -143,3 +143,22 @@ def edit_job(jid):
             "update openings set jd_text = %s, status=%s where id=%s", (jd, status, jid))
         conn.commit()
         return redirect(url_for("jobs.jobdetail", jid=jid), 302)
+
+
+@bp.route("/search_results", methods=["POST"])
+def search_job():
+    conn = db.get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "select crawled_on from crawl_status order by crawled_on desc limit 1")
+    crawl_date = cursor.fetchone()[0]
+    cursor.execute("select count(*) from openings")
+    count = cursor.fetchone()[0]
+    string = request.form.get("searchstring")
+    string = '%'+string+'%'
+    cursor.execute(
+        "select o.id, o.title, o.company_name, s.name, o.jd_text from openings o,job_status s where s.id=o.status and o.title ilike %s ", (string, ))
+    jobs = cursor.fetchall()
+    if not jobs:
+        return render_template("jobs/search_results.html", date=crawl_date, count=count), 404
+    return render_template("jobs/search_results.html", jobs=jobs, count=count, date=crawl_date)
